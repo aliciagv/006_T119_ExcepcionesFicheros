@@ -6,6 +6,7 @@
 package com.cice.utils;
 
 import com.cice.exception.FicheroNoLocalizado;
+import com.cice.exception.FormatNotValid;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,14 +24,12 @@ import java.util.logging.Logger;
  */
 public class AlmacenNumeros {
 
-    private static final String NOMBRE_FICHERO = "almacen.txt";
-    private static File fichero;
+    
 
     public AlmacenNumeros() {
 
-        fichero = new File(NOMBRE_FICHERO);
     }
-    //1;2;17;23;
+    //1;2;17;23;public void guardarNumero(int numero) throws Fich
     public void guardarNumero(int numero) throws FicheroNoLocalizado, IOException   {
         //TODO: metodo recuperar el fichero y escribir el nuevo número
         FileReader reader =null;
@@ -38,7 +37,7 @@ public class AlmacenNumeros {
         FileWriter writer =null;
         try {
             //lectura y escritura del nuevo número
-            reader = new FileReader(fichero);
+            reader = new FileReader(FileSingleton.getInstance().getFichero());
             buffer = new BufferedReader(reader);
             StringBuilder cadena = new StringBuilder(buffer.readLine());
             cadena.append(";").append(numero);
@@ -53,7 +52,7 @@ public class AlmacenNumeros {
            
            
             //escritura del fichero con la nueva cadena de caracteres
-            writer =new FileWriter(fichero);
+            writer =new FileWriter(FileSingleton.getInstance().getFichero());
             PrintWriter pw = new PrintWriter(writer);
             pw.write(cadena.toString());
             pw.flush();
@@ -64,23 +63,52 @@ public class AlmacenNumeros {
         } catch(FileNotFoundException fnfe){
             throw new FicheroNoLocalizado(FicheroNoLocalizado.MSG_NOENCONTRADO);
         } finally {
-            reader.close();
-            buffer.close();
+            if (reader!=null)
+              reader.close();
+            if (buffer!=null) 
+                buffer.close();
         }
         
         
     }
-
-    public ArrayList<Integer> recuperarNumeros() throws FileNotFoundException {
-        ArrayList<Integer> listanumeros = null;
-        //TODO: recupera el fichero, lee todos los números y devuelve un Array con ellos
-        FileReader reader = new FileReader(fichero);
-        BufferedReader buffer =new BufferedReader(reader);
-       
+    
+    public void guardarNumeroFileWriter(int numero) throws FicheroNoLocalizado, IOException   {
+        //TODO: metodo recuperar el fichero y escribir el nuevo número
         
-
-        return listanumeros;
-
+        FileWriter writer =null;
+        try {
+            //escritura del fichero con la nueva cadena de caracteres
+            writer =new FileWriter(FileSingleton.getInstance().getFichero(),true);
+            writer.write(String.valueOf(numero));
+            writer.write("\n");
+            
+        } catch(FileNotFoundException fnfe){
+            throw new FicheroNoLocalizado(FicheroNoLocalizado.MSG_NOENCONTRADO);
+        } finally {
+            writer.flush();
+            writer.close();
+        }
     }
+    public ArrayList<Integer> recuperarNumeros() throws FormatNotValid {
+          ArrayList<Integer> listanumeros = null;
+        try {
+          
+           
+            FileReader reader = new FileReader(FileSingleton.getInstance().getFichero());
+            BufferedReader bf =new BufferedReader(reader);
+            String cadena;
+            while ((cadena = bf.readLine()) != null) {
+                System.out.println(cadena);
+                listanumeros.add(Integer.parseInt(cadena));
+            }
+           
+        } catch (IOException ex) {
+            Logger.getLogger(AlmacenNumeros.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NumberFormatException nfe){
+            throw new FormatNotValid(nfe.getMessage());
+        }
+         return listanumeros;
+    }
+    
 
 }
